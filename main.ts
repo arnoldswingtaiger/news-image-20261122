@@ -1,21 +1,29 @@
-// news-image-20261122: one image summing up the world news of Sunday
-// 22 November 2026. The finished front page lives in this repository as
-// entry.png (1024x1024, drawn at build time); this program's only job is
-// to place those exact bytes at /output/entry.png, so the grader needs no
-// network, no fonts and no packages beyond Node's standard library. The
-// copy is byte-for-byte, so repeated runs always produce the same file.
+// Entry for news-image-20261122.
 //
-// Local run:
+// What this does: the newspaper front page for Sunday 22 November 2026
+// was drawn when the entry was built and saved next to this file as
+// entry.png. At grading time this script just moves those bytes to the
+// place the grader looks, /output/entry.png (or $MAKEFUN_OUTPUT_DIR when
+// that is set, for running it by hand). Nothing is fetched, nothing is
+// drawn at run time, and there are no dependencies beyond the Node
+// standard library, so running it twice writes the same bytes twice.
+// The image is 1024x1024 and under 1 MiB, inside the competition's limits.
+//
+// Try it locally with:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
-const target = join(outDir, "entry.png");
+const source = new URL("./entry.png", import.meta.url);
+const destinationDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 
-mkdirSync(outDir, { recursive: true });
-writeFileSync(target, readFileSync(join(here, "entry.png")));
-console.log(`Wrote ${target}`);
+if (!existsSync(destinationDir)) {
+  mkdirSync(destinationDir, { recursive: true });
+}
+
+const destination = join(destinationDir, "entry.png");
+copyFileSync(source, destination);
+
+const written = statSync(destination).size;
+console.log(`entry.png (${written} bytes) -> ${destination}`);
